@@ -1,0 +1,1120 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>AI Voting System | Next-Gen Digital Elections</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #5b34ea 0%, #8b5cf6 50%, #c084fc 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: moveBackground 20s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes moveBackground {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            animation: slideDown 0.8s ease;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header h1 {
+            font-size: 3.5em;
+            background: linear-gradient(135deg, #fff, #f0e6ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+            to { text-shadow: 0 0 20px rgba(255,255,255,0.6); }
+        }
+
+        .header p {
+            color: rgba(255,255,255,0.95);
+            font-size: 1.2em;
+            font-weight: 500;
+        }
+
+        .header-badge {
+            display: inline-flex;
+            gap: 15px;
+            background: rgba(255,255,255,0.15);
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 0.9em;
+            margin-top: 15px;
+            backdrop-filter: blur(5px);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* Split Layout for Auth */
+        .split-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 25px;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(12px);
+            border-radius: 25px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.25);
+            transition: transform 0.3s, box-shadow 0.3s;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Illustration Side */
+        .illustration {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+        }
+
+        .illustration i {
+            font-size: 6em;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .illustration h3 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+
+        .illustration p {
+            font-size: 1em;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .feature-list {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .feature-list li {
+            margin: 10px 0;
+            list-style: none;
+        }
+
+        .feature-list i {
+            font-size: 1em;
+            margin-right: 10px;
+            color: #c084fc;
+        }
+
+        /* Auth Tabs */
+        .auth-tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .tab {
+            padding: 12px 30px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50px;
+            font-size: 1.1em;
+            cursor: pointer;
+            color: rgba(255,255,255,0.9);
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .tab i {
+            margin-right: 8px;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #8b5cf6, #c084fc);
+            border-color: transparent;
+            box-shadow: 0 5px 20px rgba(139,92,246,0.4);
+            transform: scale(1.05);
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Form Inputs */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: rgba(255,255,255,0.95);
+            font-weight: 500;
+        }
+
+        .form-group label i {
+            margin-right: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            font-size: 1em;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #c084fc;
+            box-shadow: 0 0 15px rgba(192,132,252,0.4);
+            background: rgba(255,255,255,0.15);
+        }
+
+        /* Premium Buttons */
+        .btn {
+            background: linear-gradient(135deg, #8b5cf6, #c084fc);
+            color: white;
+            padding: 14px 35px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(139,92,246,0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            box-shadow: none;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .vote-btn {
+            width: 100%;
+            margin-top: 20px;
+            padding: 16px;
+            font-size: 1.1em;
+        }
+
+        /* Candidate Cards - Purple Theme */
+        .candidates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin-top: 25px;
+        }
+
+        .candidate-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .candidate-card::before {
+            content: '';
+            position: absolute;
+            top: -100%;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #8b5cf6, #c084fc);
+            transition: top 0.4s;
+            z-index: 0;
+        }
+
+        .candidate-card:hover::before {
+            top: 0;
+        }
+
+        .candidate-card > * {
+            position: relative;
+            z-index: 1;
+            transition: color 0.3s;
+        }
+
+        .candidate-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+
+        .candidate-card:hover .candidate-name,
+        .candidate-card:hover .candidate-party,
+        .candidate-card:hover .candidate-description,
+        .candidate-card:hover .candidate-votes {
+            color: white;
+        }
+
+        .candidate-card.selected {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #8b5cf6, #c084fc);
+            color: white;
+            transform: scale(1.02);
+        }
+
+        .candidate-symbol {
+            font-size: 4em;
+            margin-bottom: 15px;
+        }
+
+        .candidate-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .candidate-party {
+            color: #8b5cf6;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .candidate-description {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .candidate-votes {
+            font-weight: bold;
+            color: #10b981;
+            margin-top: 10px;
+            font-size: 1.1em;
+        }
+
+        /* Results Section - Unified Purple Theme */
+        .results-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .results-bars {
+            max-height: 450px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .results-bar {
+            margin: 20px 0;
+            animation: slideInLeft 0.5s ease;
+        }
+
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .results-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.95);
+        }
+
+        .bar-container {
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            overflow: hidden;
+            height: 40px;
+            position: relative;
+        }
+
+        .bar-fill {
+            background: linear-gradient(135deg, #8b5cf6, #c084fc);
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 15px;
+            color: white;
+            font-weight: bold;
+            transition: width 1s ease-out;
+            border-radius: 12px;
+            animation: fillBar 1s ease-out;
+        }
+
+        @keyframes fillBar {
+            from { width: 0; }
+        }
+
+        .total-votes {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid rgba(255,255,255,0.2);
+            font-weight: bold;
+            font-size: 1.3em;
+            color: rgba(255,255,255,0.95);
+        }
+
+        canvas {
+            max-height: 350px;
+        }
+
+        /* User Info */
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .user-details h3 {
+            color: rgba(255,255,255,0.95);
+            margin-bottom: 5px;
+        }
+
+        .user-details p {
+            color: rgba(255,255,255,0.85);
+        }
+
+        /* Fraud Alert */
+        .fraud-alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            padding: 15px 25px;
+            border-radius: 12px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            animation: slideInRight 0.5s ease;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Face Verification Modal */
+        .face-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .face-verification {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .face-verification i {
+            font-size: 4em;
+            color: #8b5cf6;
+            margin-bottom: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .split-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .illustration {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .candidates-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .results-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .glass-card {
+                padding: 20px;
+            }
+            
+            .tab {
+                padding: 8px 20px;
+                font-size: 0.9em;
+            }
+            
+            .btn {
+                padding: 12px 25px;
+            }
+            
+            .header-badge {
+                font-size: 0.7em;
+                gap: 8px;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="fraudAlert" style="display: none;"></div>
+    <div id="faceModal" style="display: none;"></div>
+    
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-vote-yea"></i> AI Voting System</h1>
+            <p>Secure | Transparent | Decentralized | AI-Powered</p>
+            <div class="header-badge">
+                <i class="fas fa-shield-alt"></i> Blockchain Verified
+                <i class="fas fa-microchip"></i> AI Fraud Detection
+                <i class="fas fa-chart-line"></i> Real-Time Results
+                <i class="fas fa-face-smile"></i> Face Verification
+            </div>
+        </div>
+
+        <!-- Split Layout Auth -->
+        <div class="split-layout" id="authSection">
+            <div class="glass-card">
+                <div class="auth-tabs">
+                    <button class="tab active" onclick="switchTab('login')">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                    <button class="tab" onclick="switchTab('register')">
+                        <i class="fas fa-user-plus"></i> Register
+                    </button>
+                </div>
+
+                <div id="loginForm" class="auth-form" style="display: block;">
+                    <div class="form-group">
+                        <label><i class="fas fa-envelope"></i> Email Address</label>
+                        <input type="email" id="loginEmail" placeholder="Enter your email">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-lock"></i> Password</label>
+                        <input type="password" id="loginPassword" placeholder="Enter your password">
+                    </div>
+                    <button class="btn" onclick="login()">
+                        <i class="fas fa-arrow-right"></i> Login
+                    </button>
+                </div>
+
+                <div id="registerForm" class="auth-form" style="display: none;">
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Full Name</label>
+                        <input type="text" id="regName" placeholder="Enter your full name">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-envelope"></i> Email Address</label>
+                        <input type="email" id="regEmail" placeholder="Enter your email">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-lock"></i> Password</label>
+                        <input type="password" id="regPassword" placeholder="Create a password">
+                    </div>
+                    <button class="btn" onclick="register()">
+                        <i class="fas fa-user-check"></i> Register
+                    </button>
+                </div>
+            </div>
+
+            <div class="glass-card illustration">
+                <i class="fas fa-vote-yea"></i>
+                <h3>Welcome to the Future of Voting</h3>
+                <p>AI-powered, blockchain-secured, and completely transparent</p>
+                <ul class="feature-list">
+                    <li><i class="fas fa-check-circle"></i> Real-time vote tracking</li>
+                    <li><i class="fas fa-check-circle"></i> AI fraud detection</li>
+                    <li><i class="fas fa-check-circle"></i> Face verification</li>
+                    <li><i class="fas fa-check-circle"></i> Blockchain audit trail</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- User Info -->
+        <div class="glass-card" id="userInfo" style="display: none;">
+            <div class="user-info">
+                <div class="user-details">
+                    <h3><i class="fas fa-user-circle"></i> Welcome, <span id="userName"></span>!</h3>
+                    <p><i class="fas fa-info-circle"></i> Status: <span id="userStatus"></span></p>
+                </div>
+                <button class="btn btn-secondary" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- Candidates Section -->
+        <div class="glass-card" id="candidatesSection" style="display: none;">
+            <h2 style="color: rgba(255,255,255,0.95); margin-bottom: 20px;">
+                <i class="fas fa-users"></i> Choose Your Leader
+            </h2>
+            <div id="candidatesList" class="candidates-grid"></div>
+            <button class="btn vote-btn" onclick="castVote()" id="voteBtn" style="display:none">
+                <i class="fas fa-vote-yea"></i> Cast Your Vote
+            </button>
+        </div>
+
+        <!-- Results Section -->
+        <div class="glass-card" id="resultsSection">
+            <h2 style="color: rgba(255,255,255,0.95); margin-bottom: 20px;">
+                <i class="fas fa-chart-line"></i> Live Election Results
+                <span style="font-size: 0.8em; margin-left: 10px;">
+                    <i class="fas fa-sync-alt" id="refreshIcon"></i> Auto-updating
+                </span>
+            </h2>
+            <div id="resultsContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let currentToken = null;
+        let currentUser = null;
+        let candidates = [];
+        let selectedCandidate = null;
+        let chart = null;
+        let refreshInterval = null;
+
+        function showFraudAlert(message = 'AI Fraud Detection Active - Real-time monitoring enabled') {
+            const alertDiv = document.getElementById('fraudAlert');
+            alertDiv.innerHTML = `
+                <div class="fraud-alert">
+                    <i class="fas fa-shield-alt"></i> ${message}
+                    <br><small>IP: ${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)} | Location: Verified</small>
+                </div>
+            `;
+            alertDiv.style.display = 'block';
+            setTimeout(() => {
+                alertDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showFaceVerification() {
+            return new Promise((resolve) => {
+                const modalDiv = document.getElementById('faceModal');
+                modalDiv.innerHTML = `
+                    <div class="face-modal">
+                        <div class="face-verification">
+                            <i class="fas fa-camera"></i>
+                            <h2>Face Verification Required</h2>
+                            <p>Please position your face in the camera</p>
+                            <div style="width: 200px; height: 200px; margin: 20px auto; background: linear-gradient(135deg, #8b5cf6, #c084fc); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-face-smile" style="font-size: 5em; color: white;"></i>
+                            </div>
+                            <div class="loading" style="padding: 10px;">
+                                <i class="fas fa-spinner fa-spin"></i> Scanning...
+                            </div>
+                            <button class="btn" onclick="document.getElementById('faceModal').style.display='none'; resolve(true)">Simulate Verification</button>
+                        </div>
+                    </div>
+                `;
+                modalDiv.style.display = 'block';
+                window.tempResolve = resolve;
+            });
+        }
+
+        function triggerConfetti() {
+            canvasConfetti({
+                particleCount: 200,
+                spread: 100,
+                origin: { y: 0.6 },
+                colors: ['#8b5cf6', '#c084fc', '#10b981', '#f59e0b']
+            });
+        }
+
+        function switchTab(tab) {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const tabs = document.querySelectorAll('.tab');
+
+            if (tab === 'login') {
+                loginForm.style.display = 'block';
+                registerForm.style.display = 'none';
+                tabs[0].classList.add('active');
+                tabs[1].classList.remove('active');
+            } else {
+                loginForm.style.display = 'none';
+                registerForm.style.display = 'block';
+                tabs[0].classList.remove('active');
+                tabs[1].classList.add('active');
+            }
+        }
+
+        async function register() {
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+
+            if (!name || !email || !password) {
+                Swal.fire('Error', 'Please fill all fields', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Registration Successful!',
+                        text: 'Please login to continue',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    switchTab('login');
+                    document.getElementById('loginEmail').value = email;
+                    document.getElementById('loginPassword').value = password;
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            } catch (error) {
+                Swal.fire('Error', 'Registration failed. Make sure server is running!', 'error');
+            }
+        }
+
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                Swal.fire('Error', 'Please fill all fields', 'error');
+                return;
+            }
+
+            // Show face verification
+            await showFaceVerification();
+            document.getElementById('faceModal').style.display = 'none';
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    currentToken = data.token;
+                    currentUser = data.user;
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: `Welcome back, ${currentUser.name}!`,
+                        text: 'Face verification completed successfully',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    
+                    document.getElementById('authSection').style.display = 'none';
+                    document.getElementById('userInfo').style.display = 'block';
+                    document.getElementById('candidatesSection').style.display = 'block';
+                    document.getElementById('userName').textContent = currentUser.name;
+                    document.getElementById('userStatus').innerHTML = currentUser.hasVoted ? 
+                        '<i class="fas fa-check-circle"></i> Already Voted' : 
+                        '<i class="fas fa-hourglass-half"></i> Ready to Vote';
+                    
+                    loadCandidates();
+                    loadResults();
+                    showFraudAlert();
+                    
+                    // Animate refresh icon
+                    setInterval(() => {
+                        const icon = document.getElementById('refreshIcon');
+                        if (icon) icon.style.transform = 'rotate(360deg)';
+                        setTimeout(() => {
+                            if (icon) icon.style.transform = 'rotate(0deg)';
+                        }, 500);
+                    }, 3000);
+                    
+                    if (refreshInterval) clearInterval(refreshInterval);
+                    refreshInterval = setInterval(loadResults, 3000);
+                } else {
+                    Swal.fire('Login Failed', 'Invalid credentials', 'error');
+                }
+            } catch (error) {
+                Swal.fire('Error', 'Login failed. Make sure server is running!', 'error');
+            }
+        }
+
+        async function loadCandidates() {
+            try {
+                const response = await fetch(`${API_URL}/candidates`);
+                candidates = await response.json();
+                
+                const container = document.getElementById('candidatesList');
+                if (candidates.length === 0) {
+                    container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading candidates...</div>';
+                    return;
+                }
+
+                container.innerHTML = candidates.map(candidate => `
+                    <div class="candidate-card ${selectedCandidate === candidate._id ? 'selected' : ''}" 
+                         onclick="selectCandidate('${candidate._id}')">
+                        <div class="candidate-symbol">${candidate.symbol || '🗳️'}</div>
+                        <div class="candidate-name">${candidate.name}</div>
+                        <div class="candidate-party">${candidate.party}</div>
+                        <div class="candidate-description">${candidate.description || 'Making our nation better'}</div>
+                        <div class="candidate-votes"><i class="fas fa-chart-simple"></i> ${candidate.votes} votes</div>
+                    </div>
+                `).join('');
+
+                const voteBtn = document.getElementById('voteBtn');
+                if (!currentUser.hasVoted) {
+                    voteBtn.style.display = 'block';
+                } else {
+                    voteBtn.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error loading candidates:', error);
+            }
+        }
+
+        function selectCandidate(candidateId) {
+            if (currentUser.hasVoted) {
+                Swal.fire('Already Voted', 'You have already cast your vote!', 'warning');
+                return;
+            }
+            selectedCandidate = candidateId;
+            loadCandidates();
+        }
+
+        async function castVote() {
+            if (!selectedCandidate) {
+                Swal.fire('No Selection', 'Please select a candidate first', 'warning');
+                return;
+            }
+
+            if (currentUser.hasVoted) {
+                Swal.fire('Already Voted', 'You have already cast your vote!', 'warning');
+                return;
+            }
+
+            const result = await Swal.fire({
+                title: 'Confirm Your Vote',
+                text: 'Are you sure you want to vote for this candidate?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#8b5cf6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, cast my vote!'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`${API_URL}/votes/cast`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${currentToken}`
+                        },
+                        body: JSON.stringify({ candidateId: selectedCandidate })
+                    });
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        triggerConfetti();
+                        showFraudAlert('Vote verified! No fraudulent activity detected.');
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Vote Cast Successfully!',
+                            text: 'Your vote has been recorded on the blockchain',
+                            timer: 2500,
+                            showConfirmButton: false
+                        });
+                        currentUser.hasVoted = true;
+                        document.getElementById('userStatus').innerHTML = '<i class="fas fa-check-circle"></i> Already Voted';
+                        document.getElementById('voteBtn').style.display = 'none';
+                        loadCandidates();
+                        loadResults();
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                } catch (error) {
+                    Swal.fire('Error', 'Failed to cast vote', 'error');
+                }
+            }
+        }
+
+        async function loadResults() {
+            try {
+                const response = await fetch(`${API_URL}/votes/results`);
+                const data = await response.json();
+                
+                const container = document.getElementById('resultsContent');
+                if (data.results && data.results.length > 0) {
+                    if (chart) {
+                        chart.destroy();
+                    }
+                    
+                    container.innerHTML = '';
+                    const chartContainer = document.createElement('div');
+                    chartContainer.className = 'results-stats';
+                    
+                    // Sort results by votes descending
+                    const sortedResults = [...data.results].sort((a, b) => b.votes - a.votes);
+                    
+                    chartContainer.innerHTML = `
+                        <div class="results-bars">
+                            ${sortedResults.map((result, index) => `
+                                <div class="results-bar" style="animation-delay: ${index * 0.1}s">
+                                    <div class="results-label">
+                                        <span><strong>${result.symbol || '🗳️'} ${result.name}</strong> (${result.party})</span>
+                                        <span>${result.votes} votes (${result.percentage}%)</span>
+                                    </div>
+                                    <div class="bar-container">
+                                        <div class="bar-fill" style="width: ${result.percentage}%">
+                                            ${result.percentage > 10 ? result.percentage + '%' : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                            <div class="total-votes">
+                                <i class="fas fa-users"></i> Total Votes Cast: ${data.totalVotes}
+                            </div>
+                        </div>
+                        <div>
+                            <canvas id="resultsChart"></canvas>
+                        </div>
+                    `;
+                    container.appendChild(chartContainer);
+                    
+                    const canvas = document.getElementById('resultsChart');
+                    if (canvas) {
+                        chart = new Chart(canvas, {
+                            type: 'doughnut',
+                            data: {
+                                labels: data.results.map(r => r.name),
+                                datasets: [{
+                                    data: data.results.map(r => r.votes),
+                                    backgroundColor: ['#8b5cf6', '#c084fc', '#a855f7', '#d946ef', '#e879f9'],
+                                    borderWidth: 3,
+                                    borderColor: 'white',
+                                    hoverOffset: 15
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: true,
+                                cutout: '60%',
+                                plugins: {
+                                    legend: {
+                                        labels: {
+                                            color: 'white',
+                                            font: { size: 12, weight: 'bold' }
+                                        },
+                                        position: 'bottom'
+                                    },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                const label = context.label || '';
+                                                const value = context.parsed || 0;
+                                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                                return `${label}: ${value} votes (${percentage}%)`;
+                                            }
+                                        }
+                                    }
+                                },
+                                animation: {
+                                    animateScale: true,
+                                    animateRotate: true,
+                                    duration: 1000
+                                }
+                            }
+                        });
+                    }
+                    
+                    // Show leader announcement
+                    if (sortedResults.length > 0 && sortedResults[0].votes > 0) {
+                        const leader = sortedResults[0];
+                        document.getElementById('resultsSection').style.border = '2px solid rgba(139,92,246,0.5)';
+                    }
+                } else {
+                    container.innerHTML = '<div class="loading"><i class="fas fa-chart-line fa-spin"></i> No votes cast yet. Be the first to vote!</div>';
+                }
+            } catch (error) {
+                console.error('Error loading results:', error);
+            }
+        }
+
+        function logout() {
+            if (refreshInterval) clearInterval(refreshInterval);
+            
+            Swal.fire({
+                icon: 'info',
+                title: 'Logged Out',
+                text: 'You have been successfully logged out',
+                timer: 1500,
+                showConfirmButton: false
+            });
+            
+            currentToken = null;
+            currentUser = null;
+            selectedCandidate = null;
+            document.getElementById('authSection').style.display = 'grid';
+            document.getElementById('userInfo').style.display = 'none';
+            document.getElementById('candidatesSection').style.display = 'none';
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+        }
+
+        loadResults();
+    </script>
+</body>
+</html>
