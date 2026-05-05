@@ -1,7 +1,7 @@
 {
   "name": "voting-system-backend",
   "version": "1.0.0",
-  "description": "AI Voting System Backend",
+  "description": "AI Voting System Backend API",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
