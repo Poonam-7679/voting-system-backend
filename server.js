@@ -25,20 +25,39 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// MongoDB connection - WITHOUT deprecated options
+// MongoDB connection with better error handling
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/voting-system';
 
 console.log('Attempting to connect to MongoDB...');
-console.log('Using URI:', MONGODB_URI ? MONGODB_URI.substring(0, 60) + '...' : 'NO URI PROVIDED');
+
+// Connection options for better reliability
+const mongooseOptions = {
+    serverSelectionTimeoutMS: 10000, // Timeout after 10 seconds
+    connectTimeoutMS: 10000,
+    socketTimeoutMS: 45000,
+};
 
 // Simplified connection without deprecated options
-mongoose.connect(MONGODB_URI)
+mongoose.connect(MONGODB_URI, mongooseOptions)
 .then(() => {
     console.log('✅ MongoDB connected successfully!');
     console.log('Database name:', mongoose.connection.db.databaseName);
 })
 .catch((err) => {
     console.log('❌ MongoDB connection error:', err.message);
+    console.log('Please check:');
+    console.log('1. IP whitelist in MongoDB Atlas (add 0.0.0.0/0 or Render IPs)');
+    console.log('2. Connection string is correct');
+    console.log('3. Database user has proper permissions');
+});
+
+// Handle connection events
+mongoose.connection.on('error', (err) => {
+    console.error('MongoDB connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+    console.log('MongoDB disconnected');
 });
 
 // Routes
@@ -48,10 +67,12 @@ app.use('/api/candidates', candidateRoutes);
 
 // Health check endpoint
 app.get('/', (req, res) => {
+    const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
     res.json({ 
         message: 'Voting System API is running!', 
         status: 'active',
-        mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+        mongodb: dbStatus,
+        timestamp: new Date().toISOString()
     });
 });
 
@@ -61,8 +82,30 @@ app.get('/api/debug/env', (req, res) => {
         mongodb_uri_exists: !!process.env.MONGODB_URI,
         mongodb_uri_prefix: process.env.MONGODB_URI ? process.env.MONGODB_URI.substring(0, 30) : null,
         port: process.env.PORT,
-        node_env: process.env.NODE_ENV
+        node_env: process.env.NODE_ENV,
+        mongodb_status: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
     });
+});
+
+// Test endpoint to check database connection
+app.get('/api/debug/db', async (req, res) => {
+    try {
+        const dbStatus = mongoose.connection.readyState;
+        const statusText = {
+            0: 'disconnected',
+            1: 'connected',
+            2: 'connecting',
+            3: 'disconnecting'
+        }[dbStatus];
+        
+        res.json({
+            connection_status: statusText,
+            ready_state: dbStatus,
+            database_name: mongoose.connection.db ? mongoose.connection.db.databaseName : null
+        });
+    } catch (error) {
+        res.json({ error: error.message });
+    }
 });
 
 // For Render deployment - use the port assigned by Render
