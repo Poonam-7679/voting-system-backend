@@ -25,23 +25,20 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// MongoDB connection with better error logging
+// MongoDB connection - WITHOUT deprecated options
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/voting-system';
 
 console.log('Attempting to connect to MongoDB...');
 console.log('Using URI:', MONGODB_URI ? MONGODB_URI.substring(0, 60) + '...' : 'NO URI PROVIDED');
 
-mongoose.connect(MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-})
+// Simplified connection without deprecated options
+mongoose.connect(MONGODB_URI)
 .then(() => {
     console.log('✅ MongoDB connected successfully!');
     console.log('Database name:', mongoose.connection.db.databaseName);
 })
 .catch((err) => {
     console.log('❌ MongoDB connection error:', err.message);
-    console.log('Full error:', err);
 });
 
 // Routes
